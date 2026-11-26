@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: mysql
+  name: mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - env:
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              key: mysql-user
+              name: mysql
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: mysql-password
+              name: mysql
+        - name: MYSQL_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: mysql-database
+              name: mysql
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: mysql-root-password
+              name: mysql
+        image: docker.io/mysql:8.4
+        imagePullPolicy: Always
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -i
+            - -c
+            - MYSQL_PWD=\"$MYSQL_PASSWORD\" mysqladmin -u $MYSQL_USER ping
+          initialDelaySeconds: 30
+          timeoutSeconds: 1
+        name: mysql
+        ports:
+        - containerPort: 3306
+          protocol: TCP
+          name: mysql
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -i
+            - -c
+            - MYSQL_PWD=\"$MYSQL_PASSWORD\" mysqladmin -u $MYSQL_USER ping
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+        resources: {}
+        volumeMounts:
+        - mountPath: /var/lib/mysql
+          name: mysql-vol
+      volumes:
+      - name: mysql-vol
+        persistentVolumeClaim:
+          claimName: mysql-vol
