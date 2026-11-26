@@ -43,3 +43,6 @@ if [ -f ${SRV_CONF_FILE} ]; then
 	done
 fi
 
+# From upstream 2.12.6 (OCSInventory-Docker-Stack#16): force a valid value
+# whatever the env loop above left on this line.
+sed -i 's/^.*PerlSetEnv OCS_OPT_DBI_PRINT_ERROR.*$/  PerlSetEnv OCS_OPT_DBI_PRINT_ERROR '"${OCS_DBI_PRINT_ERROR:-0}"'/' ${SRV_CONF_FILE}
